@@ -1,0 +1,29 @@
+name: CI
+
+# Запускается при каждом push и pull request
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получить код
+        uses: actions/checkout@v4
+
+      - name: Установить Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Установить зависимости
+        run: pip install -r requirements.txt
+
+      - name: Проверить что приложение импортируется без ошибок
+        run: python -c "import app; print('OK: приложение загружается')"
+
+      - name: Проверить что база инициализируется
+        run: python -c "import app; app.init_db(); print('OK: база создаётся')"
