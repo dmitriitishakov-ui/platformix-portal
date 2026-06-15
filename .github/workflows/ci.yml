@@ -23,7 +23,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Проверить что приложение импортируется без ошибок
-        run: python -c "import app; print('OK: приложение загружается')"
+        run: |
+          python -c "import app; print('OK: prilozhenie zagruzhaetsya')"
 
       - name: Проверить что база инициализируется
-        run: python -c "import app; app.init_db(); print('OK: база создаётся')"
+        run: |
+          python -c "import app; app.init_db(); print('OK: baza sozdaetsya')"
