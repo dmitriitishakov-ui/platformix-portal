@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Корпоративный портал</title>
+<style>
+  /* ---------- Базовые стили ---------- */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #2c3e50;
+  }
+
+  /* ---------- Шапка ---------- */
+  header {
+    background: #1f5c99;
+    color: #fff;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 { font-size: 20px; font-weight: 600; }
+
+  nav a {
+    color: #cfe3f5;
+    text-decoration: none;
+    margin-left: 24px;
+    font-size: 14px;
+  }
+
+  nav a:hover, nav a.active { color: #fff; }
+
+  /* ---------- Контейнер ---------- */
+  .container {
+    max-width: 960px;
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+
+  /* ---------- Поиск ---------- */
+  .search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .search-box input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #d5dde5;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+  }
+
+  .search-box input:focus { border-color: #1f5c99; }
+
+  .btn {
+    padding: 12px 20px;
+    background: #1f5c99;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .btn:hover { background: #174a7d; }
+
+  .btn-secondary {
+    background: #e8eef4;
+    color: #1f5c99;
+  }
+
+  .btn-secondary:hover { background: #d8e4ef; }
+
+  /* ---------- Список документов ---------- */
+  .doc-list { display: grid; gap: 12px; }
+
+  .doc-item {
+    background: #fff;
+    border: 1px solid #e3e9ef;
+    border-radius: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+
+  .doc-item:hover { box-shadow: 0 4px 14px rgba(31, 92, 153, 0.12); }
+
+  .doc-item h3 { font-size: 16px; margin-bottom: 6px; }
+
+  .doc-meta {
+    font-size: 13px;
+    color: #7f93a6;
+    display: flex;
+    gap: 16px;
+  }
+
+  .doc-category {
+    display: inline-block;
+    background: #e8f1fa;
+    color: #1f5c99;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  /* ---------- Карточка документа ---------- */
+  .doc-card {
+    background: #fff;
+    border: 1px solid #e3e9ef;
+    border-radius: 10px;
+    padding: 28px 32px;
+  }
+
+  .doc-card h2 { font-size: 22px; margin-bottom: 12px; }
+
+  .doc-card .doc-meta { margin-bottom: 20px; }
+
+  .doc-card .content {
+    line-height: 1.7;
+    font-size: 15px;
+    color: #44586c;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #1f5c99;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .back-link:hover { text-decoration: underline; }
+
+  /* ---------- Форма создания ---------- */
+  .form-grid { display: grid; gap: 14px; }
+
+  .form-grid input, .form-grid textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d5dde5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .form-grid input:focus, .form-grid textarea:focus { border-color: #1f5c99; }
+
+  .form-grid textarea { min-height: 120px; resize: vertical; }
+
+  .hidden { display: none; }
+
+  .empty-state {
+    text-align: center;
+    color: #7f93a6;
+    padding: 48px 0;
+    font-size: 15px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #2c3e50;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Корпоративный портал</h1>
+  <nav>
+    <a href="#" id="nav-docs" class="active">Документы</a>
+    <a href="#" id="nav-create">Создать документ</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- ===== Экран: список документов ===== -->
+  <div id="view-list">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Поиск по документам...">
+      <button class="btn" id="search-btn">Найти</button>
+      <button class="btn btn-secondary" id="reset-btn">Сбросить</button>
+    </div>
+    <div class="doc-list" id="doc-list"></div>
+    <div class="empty-state hidden" id="empty-state">Ничего не найдено</div>
+  </div>
+
+  <!-- ===== Экран: карточка документа ===== -->
+  <div id="view-card" class="hidden">
+    <span class="back-link" id="back-link">&#8592; Назад к списку</span>
+    <div class="doc-card" id="doc-card"></div>
+  </div>
+
+  <!-- ===== Экран: создание документа ===== -->
+  <div id="view-create" class="hidden">
+    <div class="doc-card">
+      <h2>Новый документ</h2>
+      <div class="form-grid" style="margin-top: 20px;">
+        <input type="text" id="f-title" placeholder="Название документа">
+        <input type="text" id="f-category" placeholder="Категория (например: Регламенты)">
+        <input type="text" id="f-author" placeholder="Автор">
+        <textarea id="f-content" placeholder="Текст документа"></textarea>
+        <button class="btn" id="create-btn">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Переключение экранов ----------
+const views = {
+  list:   document.getElementById('view-list'),
+  card:   document.getElementById('view-card'),
+  create: document.getElementById('view-create'),
+};
+
+function showView(name) {
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  views[name].classList.remove('hidden');
+
+  document.getElementById('nav-docs').classList.toggle('active', name === 'list');
+  document.getElementById('nav-create').classList.toggle('active', name === 'create');
+}
+
+// ---------- Уведомления ----------
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---------- Загрузка списка документов ----------
+async function loadDocuments(query = '') {
+  const url = query ? `/documents?q=${encodeURIComponent(query)}` : '/documents';
+  const res = await fetch(url);
+  const docs = await res.json();
+
+  const list = document.getElementById('doc-list');
+  const empty = document.getElementById('empty-state');
+  list.innerHTML = '';
+
+  if (docs.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  docs.forEach(doc => {
+    const item = document.createElement('div');
+    item.className = 'doc-item';
+    item.innerHTML = `
+      <h3>${doc.title}</h3>
+      <div class="doc-meta">
+        <span class="doc-category">${doc.category}</span>
+        <span>${doc.author}</span>
+        <span>${doc.created_at}</span>
+      </div>
+    `;
+    item.addEventListener('click', () => openDocument(doc.id));
+    list.appendChild(item);
+  });
+}
+
+// ---------- Карточка документа ----------
+async function openDocument(id) {
+  const res = await fetch(`/documents/${id}`);
+  if (!res.ok) { toast('Документ не найден'); return; }
+  const doc = await res.json();
+
+  document.getElementById('doc-card').innerHTML = `
+    <h2>${doc.title}</h2>
+    <div class="doc-meta">
+      <span class="doc-category">${doc.category}</span>
+      <span>${doc.author}</span>
+      <span>${doc.created_at}</span>
+    </div>
+    <div class="content">${doc.content}</div>
+  `;
+  showView('card');
+}
+
+// ---------- Создание документа ----------
+async function createDocument() {
+  const payload = {
+    title:    document.getElementById('f-title').value,
+    category: document.getElementById('f-category').value,
+    author:   document.getElementById('f-author').value,
+    content:  document.getElementById('f-content').value,
+  };
+
+  const res = await fetch('/documents', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    toast(err.error || 'Ошибка при создании');
+    return;
+  }
+
+  // Очищаем форму и возвращаемся к списку
+  ['f-title', 'f-category', 'f-author', 'f-content'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  toast('Документ создан');
+  showView('list');
+  loadDocuments();
+}
+
+// ---------- Обработчики ----------
+document.getElementById('nav-docs').addEventListener('click', e => {
+  e.preventDefault(); showView('list'); loadDocuments();
+});
+document.getElementById('nav-create').addEventListener('click', e => {
+  e.preventDefault(); showView('create');
+});
+document.getElementById('back-link').addEventListener('click', () => showView('list'));
+document.getElementById('search-btn').addEventListener('click', () => {
+  loadDocuments(document.getElementById('search-input').value);
+});
+document.getElementById('search-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadDocuments(e.target.value);
+});
+document.getElementById('reset-btn').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  loadDocuments();
+});
+document.getElementById('create-btn').addEventListener('click', createDocument);
+
+// ---------- Старт ----------
+loadDocuments();
+</script>
+
+</body>
+</html>

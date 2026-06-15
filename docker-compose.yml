@@ -1,0 +1,11 @@
+services:
+  portal:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # база будет лежать в папке data (см. volumes ниже)
+      - DB_PATH=/app/data/portal.db
+    volumes:
+      # сохраняем базу данных на диск, чтобы документы не пропадали при перезапуске
+      - ./data:/app/data
